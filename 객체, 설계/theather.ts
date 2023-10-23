@@ -56,6 +56,17 @@ class Audience {
   public getBag(): Bag {
       return this.bag;
   }
+
+  public buy(ticket: Ticket): number {
+      if(this.bag.hasInvitation()){
+          this.bag.setTicket(ticket)
+          return 0;    
+      }else {
+          this.bag.setTicket(ticket)
+          this.bag.minusAmount(ticket.getFee())
+          return ticket.getFee()
+      }
+  }
 }
 
 class TicketOffice {
@@ -67,8 +78,9 @@ class TicketOffice {
       this.tickets.push(...tickets);
   }
 
-  public getTicket(): Ticket | undefined {
-      return this.tickets.shift();
+  public getTicket(): Ticket {
+      // 티켓이 반드시 있다고 가정
+      return this.tickets.shift()!;
   }
 
   public minusAmount(amount: number) {
@@ -90,6 +102,11 @@ class TicketSeller {
   public getTicketOffice(): TicketOffice {
       return this.ticketOffice;
   }
+
+  public sellTo(audience: Audience){
+      // TicketSeller와 Audience간의 결합도를 낮추고 구현을 캡슐화하여 Audience가 수정되더라도 영향을 받지 않도록 함
+      this.ticketOffice.plusAmount(audience.buy(this.ticketOffice.getTicket()));
+  }
 }
 
 class Theather {
@@ -100,19 +117,7 @@ class Theather {
   }
 
   public enter(audience: Audience){
-      if(audience.getBag().hasInvitation()){
-          const ticket = this.ticketSeller.getTicketOffice().getTicket();
-          if(ticket){
-              audience.getBag().setTicket(ticket);
-          }
-      }else {
-          const ticket = this.ticketSeller.getTicketOffice().getTicket();
-          if(ticket){
-              audience.getBag().minusAmount(ticket.getFee());
-              this.ticketSeller.getTicketOffice().plusAmount(ticket.getFee());
-              audience.getBag().setTicket(ticket);
-          }
-
-      }
+      //Theather는 TicketSeller의 인터페이스에만 의존하도록 하여(인터페이스와 구현 분리) 결합도를 낮추고 변경하기 쉬운 코드를 작성하려 함
+      this.ticketSeller.sellTo(audience)
   }
 }
