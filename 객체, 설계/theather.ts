@@ -25,7 +25,19 @@ class Bag {
       this.amount = amount;
   }
 
-  public hasInvitation(): boolean {
+  public hold(ticket: Ticket): number{
+    // Audience에서 Bag의 내부의 접근 대신, 캡슐화 하여 인터페이스만 사용하도록 하여 결합도 감소
+    if(this.hasInvitation()){
+        this.setTicket(ticket);
+        return 0;
+    }else {
+        this.setTicket(ticket);
+        this.minusAmount(ticket.getFee());
+        return ticket.getFee();
+    }
+  }
+
+  private hasInvitation(): boolean {
       return this.invitation != null;
   }
 
@@ -33,11 +45,11 @@ class Bag {
       return this.ticket != null;
   }
 
-  public setTicket(ticket: Ticket){
+  private setTicket(ticket: Ticket){
       this.ticket = ticket;
   }
 
-  public minusAmount(amount: number){
+  private minusAmount(amount: number){
       this.amount -= amount;
   }
 
@@ -58,14 +70,7 @@ class Audience {
   }
 
   public buy(ticket: Ticket): number {
-      if(this.bag.hasInvitation()){
-          this.bag.setTicket(ticket)
-          return 0;    
-      }else {
-          this.bag.setTicket(ticket)
-          this.bag.minusAmount(ticket.getFee())
-          return ticket.getFee()
-      }
+    return this.bag.hold(ticket);
   }
 }
 
@@ -76,6 +81,12 @@ class TicketOffice {
   constructor(amount: number, ...tickets: Ticket []){ // Rest 파라미터
       this.amount = amount;
       this.tickets.push(...tickets);
+  }
+
+  //캡슐화로 인하여 audience를 알게되 TicketOffice는 자율적인 존재가 되었지만 오히려 결합도가 높아짐
+  // 결국 기능을 설계는 여러가지가 있고 결국 설계는 트레이드 오프의 산물이다.
+  public sellTicketTo(audience: Audience){
+    this.plusAmount(audience.buy(this.getTicket()));
   }
 
   public getTicket(): Ticket {
@@ -105,7 +116,7 @@ class TicketSeller {
 
   public sellTo(audience: Audience){
       // TicketSeller와 Audience간의 결합도를 낮추고 구현을 캡슐화하여 Audience가 수정되더라도 영향을 받지 않도록 함
-      this.ticketOffice.plusAmount(audience.buy(this.ticketOffice.getTicket()));
+      this.ticketOffice.sellTicketTo(audience);
   }
 }
 
