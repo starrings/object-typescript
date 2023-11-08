@@ -227,3 +227,11 @@ class PercentDiscountPolicy extends DiscountPolicy {
       return screening.getMovieFee().times(this.percent);
     }
 }
+
+// 할인 정책이 없는 경우에도 일관성 있게 책임을 DiscountPolicy로 넘김
+class NoneDisCountPolicy extends DiscountPolicy {
+  // 추상 클래스를 상속받아 오버라이딩 함
+  protected getDiscountAmount(screening: Screening) {
+    return Money.ZERO;  
+  }
+}
