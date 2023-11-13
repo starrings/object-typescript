@@ -142,9 +142,16 @@ class Movie {
   }
 }
 
+// NoneDisCountPolicy 메서드의 리턴 값이 의미 없어지는 현상 방지(부모에 의존하지 않게!)
+// 한편으로 NoneDisCountPolicy만을 위해 인터페이스를 추가하는 것이 과하다고 생각할 수도 있음
+// 구현과 관련된 모든 것은 트레이드 오프의 관계! 모든 코드에는 합당한 설계가 필요
+interface DiscountPolicy {
+  calculateDiscountAmount(screening: Screening): Money;
+}
+
 // 금액 할인 정책과 비율 할인 정책을 상속 받게 하기 위한 추상 클래스
 // 템플릿 패턴
-abstract class DiscountPolicy {
+abstract class DefaultDiscountPolicy implements DiscountPolicy {
   private conditions: DiscountCondition[] = new Array<DiscountCondition>();
 
   constructor(...condisions: DiscountCondition[]) {
@@ -162,6 +169,42 @@ abstract class DiscountPolicy {
   }
 
   protected abstract getDiscountAmount(screening: Screening);
+}
+
+class AmountDiscountPolicy extends DefaultDiscountPolicy {
+  private discountAmount: Money;
+
+  constructor(discountAmount: Money, ...conditions: DiscountCondition[]) {
+    super(...conditions);
+    this.discountAmount = discountAmount;
+  }
+
+  // 추상 클래스를 상속받아 오버라이딩 함
+  protected getDiscountAmount(screening: Screening): Money {
+    return this.discountAmount;
+  }
+}
+
+class PercentDiscountPolicy extends DefaultDiscountPolicy {
+  private percent: number;
+
+  constructor(discountAmount: Money, ...conditions: DiscountCondition[]) {
+    super(...conditions);
+    this.percent = this.percent;
+  }
+
+    // 추상 클래스를 상속받아 오버라이딩 함
+    protected getDiscountAmount(screening: Screening): Money {
+      return screening.getMovieFee().times(this.percent);
+    }
+}
+
+// 할인 정책이 없는 경우에도 일관성 있게 책임을 DiscountPolicy로 넘김
+class NoneDisCountPolicy implements DiscountPolicy {
+  // 추상 클래스를 상속받아 오버라이딩 함
+  public calculateDiscountAmount(screening: Screening) {
+    return Money.ZERO;  
+  }
 }
 
 // 순번 조건과 기간 조건의 각각 사용하기 위해 인터페이스 사용
@@ -197,41 +240,5 @@ class PeriodCondition implements DiscountCondition {
     return getDayOfWeek(screening.getStartTime()) == this.dayOfWeek &&
       this.startTime <= screening.getStartTime() &&
       this.endTime >= screening.getStartTime()
-  }
-}
-
-class AmountDiscountPolicy extends DiscountPolicy {
-  private discountAmount: Money;
-
-  constructor(discountAmount: Money, ...conditions: DiscountCondition[]) {
-    super(...conditions);
-    this.discountAmount = discountAmount;
-  }
-
-  // 추상 클래스를 상속받아 오버라이딩 함
-  protected getDiscountAmount(screening: Screening): Money {
-    return this.discountAmount;
-  }
-}
-
-class PercentDiscountPolicy extends DiscountPolicy {
-  private percent: number;
-
-  constructor(discountAmount: Money, ...conditions: DiscountCondition[]) {
-    super(...conditions);
-    this.percent = this.percent;
-  }
-
-    // 추상 클래스를 상속받아 오버라이딩 함
-    protected getDiscountAmount(screening: Screening): Money {
-      return screening.getMovieFee().times(this.percent);
-    }
-}
-
-// 할인 정책이 없는 경우에도 일관성 있게 책임을 DiscountPolicy로 넘김
-class NoneDisCountPolicy extends DiscountPolicy {
-  // 추상 클래스를 상속받아 오버라이딩 함
-  protected getDiscountAmount(screening: Screening) {
-    return Money.ZERO;  
   }
 }
