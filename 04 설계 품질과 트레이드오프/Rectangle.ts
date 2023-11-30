@@ -11,41 +11,47 @@ class Rectangle {
     this.bottom = bottom;
   }
 
-  // 문제점
-  // 1. Rectangle 변경이 필요한 곳에서 중복 코드 발생
-  // 2. 수정에 취약
-  // 클래스의 인스턴스가 메서드를 통해 노출됨
-  // length와 height를 사용하도록 수정하면 관련 메서드와 메서드를 사용하는 코드 모두 변경 필요
-  public getLeft(): number {
-    return this.left;
+  // 자신의 데이터를 스스로 수정하도록 수정
+  public enlarge(multiple: number)  {
+    this.right *= multiple;
+    this.bottom *= multiple;
   }
 
-  public setLeft(left: number) {
-    this.left = left;
-  }
+  // // 문제점
+  // // 1. Rectangle 변경이 필요한 곳에서 중복 코드 발생
+  // // 2. 수정에 취약
+  // // 클래스의 인스턴스가 메서드를 통해 노출됨
+  // // length와 height를 사용하도록 수정하면 관련 메서드와 메서드를 사용하는 코드 모두 변경 필요
+  // public getLeft(): number {
+  //   return this.left;
+  // }
 
-  public getTop(): number {
-    return this.top;
-  }
+  // public setLeft(left: number) {
+  //   this.left = left;
+  // }
 
-  public setTop(top: number) {
-    this.top = top;
-  }
+  // public getTop(): number {
+  //   return this.top;
+  // }
 
-  public getRight(): number {
-    return this.right;
-  }
+  // public setTop(top: number) {
+  //   this.top = top;
+  // }
 
-  public setRight(right: number) {
-    this.right = right;
-  }
+  // public getRight(): number {
+  //   return this.right;
+  // }
 
-  public getBottom(): number {
-    return this.bottom;
-  }
+  // public setRight(right: number) {
+  //   this.right = right;
+  // }
 
-  public setBottom(bottom: number) {
-    this.bottom = bottom;
-  }
+  // public getBottom(): number {
+  //   return this.bottom;
+  // }
+
+  // public setBottom(bottom: number) {
+  //   this.bottom = bottom;
+  // }
 
 }
