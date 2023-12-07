@@ -63,6 +63,10 @@ namespace ch5 {
     public getSequence() {
       return this.sequence;
     }
+
+    public getStartTime(): Date {
+      return this.whenScreened;
+    }
   }
 
   class Movie {
@@ -108,7 +112,7 @@ namespace ch5 {
     }
 
     private calculatePercentDiscountAmount() {
-      return this.fee.timees(this.discountPercent);
+      return this.fee.times(this.discountPercent);
     }
 
     private calculateNoneDiscountAmount() {
@@ -120,15 +124,15 @@ namespace ch5 {
     private type: DiscountConditionType;
     private sequence: number;
     private dayOfWeek: DayOfWeek;
-    private startTime: number;
-    private endTime: number;
+    private startTime: Date;
+    private endTime: Date;
 
     public isSatisfiedBy(screening: Screening) {
-      if(this.type == DiscountCondition.PERIOD) {
+      if(this.type == DiscountConditionType.PERIOD) {
         return this.isSatisfiedByPeriod(screening);
       }
 
-      return isSatisfiedBySequence(screening);
+      return this.isSatisfiedBySequence(screening);
     }
 
     private isSatisfiedByPeriod(screening: Screening) {
@@ -137,8 +141,45 @@ namespace ch5 {
       this.endTime >= screening.getStartTime()
     }
 
-    private isSatisfiedBySequeence(screening: Screening){
+    private isSatisfiedBySequence(screening: Screening){
       return this.sequence == screening.getSequence();
     }
   }
+
+  // 이전 코드에서는 DiscountCondition에서 한가지 이상의 변경사항이 나타나
+  // 응집도가 떨어져
+  // 각 기능들을 분리하여 응집도를 향상시켰으나
+  // 분리한 이후 Movie에서 서로 다른  두 클래스에 결합되어
+  // 결합도가 높아지는 새로운 문제가 생기게 되었다.
+  // class PeriodCondition {
+  //   private dayOfWeek: DayOfWeek;
+  //   private startTime: Date;
+  //   private endTime: Date;
+
+  //   constructor(dayOfWeek: DayOfWeek, startTime: Date, endTime: Date) {
+  //     this.dayOfWeek = dayOfWeek;
+  //     this.startTime = startTime;
+  //     this.endTime = endTime;
+  //   }
+
+  //   public isSatisfiedBy(screening: Screening): boolean {
+  //     return getDayOfWeek(screening.getWhenScreened()) == this.dayOfWeek &&
+  //     this.startTime <= screening.getStartTime() &&
+  //     this.endTime >= screening.getStartTime()
+  //   }
+  // }
+
+  // class SequenceCondition {
+  //   private sequence: number;
+
+  //   constructor(sequence: number) {
+  //     this.sequence = sequence;
+  //   }
+
+  //   public isSatisfiedBy(screening: Screening) {
+  //     return this.sequence == screening.getSequence();
+  //   }
+  // }
 }
+
+
