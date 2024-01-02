@@ -69,7 +69,7 @@ namespace ch5 {
     }
   }
 
-  class Movie {
+  abstract class Movie {
     private title: string;
     private runningTime: Date;
     private fee: Money;
@@ -78,6 +78,13 @@ namespace ch5 {
     private moneyType: MovieType;
     private discountAmount: Money;
     private discountPercent: number;
+
+    constructor(title: string, runningTime: Date, fee: Money, ...discountConditions: DiscountCondition[]) {
+      this.title = title;
+      this.runningTime = runningTime;
+      this.fee = fee;
+      this.discountConditions.push(discountConditions);
+    }
 
     public calculateMovieFee(screening: Screening): Money {
       if(this.isDiscountable(screening)) {
@@ -94,29 +101,47 @@ namespace ch5 {
       });
     }
 
-    private calculateDiscountAmount() {
-      switch(this.moneyType) {
-        case MovieType.AMOUNT_DISCOUNT:
-          return this.calculateAmountDiscountAmount();
-        case MovieType.PERCENT_DISCOUNT:
-          return this.calculatePercentDiscountAmount();
-        case MovieType.NONE_DISCOUNT:
-          return this.calculateNoneDiscountAmount();
-      }
+    // 상속을 통햐여 할인 방법을 캡슐화
+    protected abstract calculateDiscountAmount();
 
-      throw new Error();
+    protected getFee(): Money {
+      return this.fee;
+    }
+  }
+
+  class AmountDiscountMovie extends Movie {
+    private discountAmount: Money;
+
+    constructor (title: string, runningTime: Date, fee: Money, discountAmount: Money, ...discountConditions: DiscountCondition[]) {
+      super(title, runningTime, fee, ...discountConditions);
+      this.discountAmount = discountAmount;
     }
 
-    private calculateAmountDiscountAmount() {
+    protected calculateDiscountAmount() {
       return this.discountAmount;
     }
+  }
 
-    private calculatePercentDiscountAmount() {
-      return this.fee.times(this.discountPercent);
+  class PercentDiscountMovie extends Movie {
+    private discountPercent: number;
+
+    constructor (title: string, runningTime: Date, fee: Money, discountPercent: number, ...discountConditions: DiscountCondition[]) {
+      super(title, runningTime, fee, ...discountConditions);
+      this.discountPercent = discountPercent;
     }
 
-    private calculateNoneDiscountAmount() {
-      return Money.ZERO;
+    protected calculateDiscountAmount() {
+      return super.getFee().times(this.discountPercent);
+    }
+  }
+
+  class NoneDiscountMovie extends Movie {
+    constructor(title: string, runningTime: Date, fee: Money) {
+      super(title, runningTime, fee);
+    }
+
+    protected calculateDiscountAmount() {
+      return Money.ZERO;  
     }
   }
 
@@ -146,40 +171,40 @@ namespace ch5 {
     }
   }
 
-  // 이전 코드에서는 DiscountCondition에서 한가지 이상의 변경사항이 나타나
-  // 응집도가 떨어져
-  // 각 기능들을 분리하여 응집도를 향상시켰으나
-  // 분리한 이후 Movie에서 서로 다른  두 클래스에 결합되어
-  // 결합도가 높아지는 새로운 문제가 생기게 되었다.
-  // class PeriodCondition {
-  //   private dayOfWeek: DayOfWeek;
-  //   private startTime: Date;
-  //   private endTime: Date;
+  // interface 구현을 통햐여 할인 조건을 캡슐화
+  interface DiscountCondition {
+    isSatisfiedBy(screening: Screening): boolean;
+  }
 
-  //   constructor(dayOfWeek: DayOfWeek, startTime: Date, endTime: Date) {
-  //     this.dayOfWeek = dayOfWeek;
-  //     this.startTime = startTime;
-  //     this.endTime = endTime;
-  //   }
+  class PeriodCondition implements DiscountCondition {
+    private dayOfWeek: DayOfWeek;
+    private startTime: Date;
+    private endTime: Date;
 
-  //   public isSatisfiedBy(screening: Screening): boolean {
-  //     return getDayOfWeek(screening.getWhenScreened()) == this.dayOfWeek &&
-  //     this.startTime <= screening.getStartTime() &&
-  //     this.endTime >= screening.getStartTime()
-  //   }
-  // }
+    constructor(dayOfWeek: DayOfWeek, startTime: Date, endTime: Date) {
+      this.dayOfWeek = dayOfWeek;
+      this.startTime = startTime;
+      this.endTime = endTime;
+    }
 
-  // class SequenceCondition {
-  //   private sequence: number;
+    public isSatisfiedBy(screening: Screening): boolean {
+      return getDayOfWeek(screening.getWhenScreened()) == this.dayOfWeek &&
+      this.startTime <= screening.getStartTime() &&
+      this.endTime >= screening.getStartTime()
+    }
+  }
 
-  //   constructor(sequence: number) {
-  //     this.sequence = sequence;
-  //   }
+  class SequenceCondition implements DiscountCondition {
+    private sequence: number;
 
-  //   public isSatisfiedBy(screening: Screening) {
-  //     return this.sequence == screening.getSequence();
-  //   }
-  // }
+    constructor(sequence: number) {
+      this.sequence = sequence;
+    }
+
+    public isSatisfiedBy(screening: Screening) {
+      return this.sequence == screening.getSequence();
+    }
+  }
 }
 
 
