@@ -83,7 +83,7 @@ namespace ch5 {
       this.title = title;
       this.runningTime = runningTime;
       this.fee = fee;
-      this.discountConditions.push(discountConditions);
+      this.discountConditions.push(...discountConditions);
     }
 
     public calculateMovieFee(screening: Screening): Money {
