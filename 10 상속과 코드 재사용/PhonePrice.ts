@@ -18,17 +18,40 @@ namespace ch10 {
   }
 
   enum PhoneType { REGULAR, NIGHTLY };
+  // 자식을 추가하는 것이 아닌 추상화 된 부모를 추가하여 상속
+  abstract class Phone {
+    private calls: Call[] = [];
+    private taxRate: number;
 
-  class Phone {
+    constructor(taxRate: number) {
+      // 인스턴스가 추가되야하는 경우에는 자식들도 수정 필요
+      this.taxRate = taxRate;
+    }
+
+    public calculateFee(): number {
+      let result: number = 0;
+
+      for (const call of this.calls) {
+        //부모와 자식의 차이를 메서드로 분리
+        result += this.calculateCallFee(call);
+      }
+
+      return result + (result * this.taxRate);
+    }
+
+    protected abstract calculateCallFee(call: Call): number;
+  };
+
+  class RegularPhone extends Phone {
     private amount: number;
     private seconds: number;
     private calls: Call[];
     private taxRate: number;
 
     constructor(seconds: number, amount: number, taxRate: number) {
+      super(taxRate);
       this.seconds = seconds;
       this.amount = amount;
-      this.taxRate = taxRate;
     }
 
     public call(call: Call) {
@@ -46,16 +69,9 @@ namespace ch10 {
     public getSeconds(): number {
       return this.seconds;
     }
-    // 두 코드를 하나의 클래스에 합쳐 타입마다 분기 시키면 중복문제는 해결했지만
-    // 이전부터 계속 문제되었던 결합도와 응집도 문제가 생긴다.
-    public calculateFee(): number {
-      let result: number = 0;
 
-      for (const call of this.calls) {
-        result += (call.getDuration() / this.seconds) * this.amount;
-      }
-
-      return result + (result * this.taxRate);
+    protected calculateCallFee(call: Call): number {
+      return (call.getDuration() / this.seconds) * this.amount
     }
   }
   // 상속을 이용한 중복 제거
@@ -63,24 +79,22 @@ namespace ch10 {
     private static readonly LATE_NIGHT_HOUR = 22;
     
     private nightlyAmount: number;
+    private regularAmount: number;
+    private seconds: number;
 
     constructor(nightlyAmount: number, regularAmount: number, seconds: number, taxRate: number) {
-      super(regularAmount, seconds,taxRate);
+      super(taxRate);
       this.nightlyAmount = nightlyAmount;
+      this.regularAmount = regularAmount;
+      this.seconds = seconds;
     }
-    // phone과 중복 코드를 가지고 있어 수정사항이 발생하면 둘 다 수정 필요해짐
-    public caculateFee(): number {
-      let result: number = super.calculateFee();
-      let nightlyFee = 0;
 
-      // 억지로 상속을 하여 코드가 약간 덜 직ㄴ관적임
-      for (const call of this.getCalls()) {
-        if (call.getFrom().getHours() >= NightDiscountPhone.LATE_NIGHT_HOUR) {
-          nightlyFee += (this.getAmount() - this.nightlyAmount) * (call.getDuration() / this.getSeconds());
-        } 
+    protected calculateCallFee(call: Call): number {
+      if (call.getFrom().getHours() >= NightDiscountPhone.LATE_NIGHT_HOUR) {
+        return this.nightlyAmount * (call.getDuration() / this.seconds);
+      } else {
+        return this.regularAmount * (call.getDuration() / this.seconds);
       }
-      // 세금 부과 로직을 중복된 코드에 모두 추가함
-      return result - nightlyFee;
     }
   }
 }
