@@ -66,6 +66,19 @@ namespace ch10 {
     }
   }
 
+  class RateDiscountableRegularPhone extends RegularPhone {
+    private discountAmount: number;
+
+    constructor(amount: number, seconds: number, discountAmount: number) {
+      super(amount, seconds); 
+      this.discountAmount = discountAmount;
+    }
+
+    public afterCalculated(fee: number): number {
+      return fee - this.discountAmount;
+    }
+  }
+
   class NightlyDiscountPhone extends Phone {
     private static readonly LATE_NIGHT_HOUR = 22;
     
@@ -102,4 +115,21 @@ namespace ch10 {
       return fee + fee * this.taxRate;
     }
   }
+
+  class RateDiscountableNightlyDiscountPhone extends NightlyDiscountPhone {
+    private discountAmount: number;
+
+    constructor(nightlyamount: number, regularamount: number, seconds: number, discountAmount: number) {
+      super(nightlyamount, regularamount, seconds); 
+      this.discountAmount = discountAmount;
+    }
+
+    // 중복된 코드
+    public afterCalculated(fee: number): number {
+      return fee - this.discountAmount;
+    }
+  }
+
+  // 10가지의 모든 경우의 수 클래스 추가 필요
+  // 만약 새로운 기본 정책이 생긴다면....
 }
