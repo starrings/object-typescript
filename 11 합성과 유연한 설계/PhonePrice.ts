@@ -30,6 +30,10 @@ namespace ch10 {
 
       return result;
     }
+    //훅 메서드: 오버라이딩 용도이나 편의를 위해 기본 메서드 제공
+    protected afterCalculated(fee: number): number {
+      return fee;
+    }
 
     protected abstract calculateCallFee(call: Call): number;
   };
@@ -49,7 +53,20 @@ namespace ch10 {
     }
   }
 
-  class NightDiscountPhone extends Phone {
+  class TaxableRegularPhone extends RegularPhone {
+    private taxRate: number;
+
+    constructor(amount: number, seconds: number, taxRate: number) {
+      super(amount, seconds); 
+      this.taxRate = taxRate;
+    }
+
+    public afterCalculated(fee: number): number {
+      return fee + fee * this.taxRate;
+    }
+  }
+
+  class NightlyDiscountPhone extends Phone {
     private static readonly LATE_NIGHT_HOUR = 22;
     
     private nightlyAmount: number;
@@ -64,11 +81,25 @@ namespace ch10 {
     }
 
     protected calculateCallFee(call: Call): number {
-      if (call.getFrom().getHours() >= NightDiscountPhone.LATE_NIGHT_HOUR) {
+      if (call.getFrom().getHours() >= NightlyDiscountPhone.LATE_NIGHT_HOUR) {
         return this.nightlyAmount * (call.getDuration() / this.seconds);
       } else {
         return this.regularAmount * (call.getDuration() / this.seconds);
       }
+    }
+  }
+
+  class TaxableNightlyPhone extends NightlyDiscountPhone {
+    private taxRate: number;
+
+    constructor(nightlyamount: number, regularamount: number, seconds: number, taxRate: number) {
+      super(nightlyamount, regularamount, seconds); 
+      this.taxRate = taxRate;
+    }
+
+    // 중복된 코드
+    public afterCalculated(fee: number): number {
+      return fee + fee * this.taxRate;
     }
   }
 }
